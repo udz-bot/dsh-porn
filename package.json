@@ -1,0 +1,59 @@
+{
+  "name": "dsh-porn",
+  "version": "1.0.0",
+  "description": "DSH 色情向破甲插件：稳定产出高质量色情正文 —— 驯服大模型（提示词内核 + 操作稿 + 请求体整形 + 拒答判定与自愈 + 注记与词表 + 按需叶子）+ 改善文风（直白档人格层 / 文学档配额）。2,127 tok 常驻，零宿主补丁，跨平台（Windows / macOS / Linux）。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "dsh-porn": "bin/porn.mjs",
+    "dsh-fix-hidden": "bin/fix-hidden.mjs"
+  },
+  "files": [
+    "lib",
+    "skill",
+    "bin",
+    "tools",
+    "cordis.patch.yml",
+    "README.md",
+    "AGENTS.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.15"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "scripts": {
+    "test": "node test/selftest.mjs && node test/harness.mjs && node test/rewind.mjs && node test/adapter.mjs && node test/leaf.mjs && node test/retry.mjs && node test/fixhidden.mjs && node tools/lexicon-audit.mjs --strict && node tools/placeholders.mjs --strict",
+    "test:all": "npm test && node test/smoke-cordis.mjs",
+    "cost": "node bin/porn.mjs cost lib/kernel.js",
+    "fix-hidden": "node bin/fix-hidden.mjs --verify",
+    "lexicon": "node tools/lexicon-audit.mjs",
+    "placeholders": "node tools/placeholders.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "porn",
+    "nsfw",
+    "jailbreak",
+    "prompt-injection",
+    "prefill",
+    "rewind",
+    "adult"
+  ],
+  "license": "MIT"
+}

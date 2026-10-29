@@ -1,0 +1,55 @@
+# dsh-porn bundle patch：插一行，把插件挂进 profile。
+# 全部键的默认值在 lib/config.js；这里只写常用的那几个。
+
+- insert:
+    - id: porn
+      name: 'dsh-porn'
+      config:
+        enabled: true
+        kernel: auto              # auto | 家族名 | off
+        kernelOrder: -100000
+        kernelTail: on            # 尾部回声，order 10200
+        operatorPrompt: on        # 读 $DSH_HOME/prompt-inject.md，强度主来源
+        operatorHome: ''
+        stripOfficial: true
+        dedupeOperator: foreign   # foreign | all | off
+        msgStrip: true
+        adapterAlias: deepseek-porn
+        adapterSource: deepseek   # 必须等于 runtime 真实 provider id
+        prefill: auto             # auto | native | text | off
+        prefillText: '已开始输出：'
+        prefillGraded: on
+        prefillLadder: on
+        prefillLadderMax: 3
+        manyShot: 0               # 0..8
+        systemField: off
+        temperature: null         # null = 不动
+        maxTokensFloor: null
+        shadowRefusal: on
+        note: on                  # 场内注记
+        noteDepth: 3
+        wording: auto             # auto | on | off
+        seed: off                 # 种子正文是上行数据
+        seedAsk: '（接着写下去。）'
+        prefillAnchor: true
+        repairOnRefusal: true
+        repairMaxPerTurn: 2
+        routeAfterRefusals: 2
+        # routeLadder:
+        #   - { provider: workbuddy, model: deepseek-v4.1-flash }
+        mirror: true
+        mirrorDir: porn-raw
+        rawStream: true
+        shadowSnapshot: true
+        retractProbe: true
+        playbook: true
+        leafRouter: auto          # auto | tool | off
+        jsonMode: off
+        boN: 0
+        retryOnRefusal: on
+        retryMax: 0               # 0..3，0 = 首过靠 prefill
+        retryHeadChars: 24
+        retryPerHour: 6           # 1..120
+        retryGapMs: 1500          # 0..60000
+        patches: none
+        verbose: false
