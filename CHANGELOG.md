@@ -14,7 +14,7 @@
 2. **去注释**：`lib` / `bin` / `tools` / `test` 同一批 30 个文件，9,070 行 → 7,941 行（−12%）。删掉的是叙述性注释（实测记录、设计权衡、历史沿革），保留的是会改变行为的那部分代码和每条断言的名字。剥离用词法扫描，字符串 / 模板串 / 正则没被碰过；`node --check` 全过，`npm test` 全绿是判据。
 3. **收文档**：删 `docs/` 五份（MANUAL / INTERFACE / LAYERS / PROMPT / STRENGTH-PLAN），内容折叠进 README 的六节；`README` 590 → 132 行；`CHANGELOG` 632 → 本文件。
 4. **删死代码**：`bin/porn.mjs migrate`（从旧插件导入的迁移路径）与其 `PURGE_DIR` 环境变量；`test/ab.mjs`（探针对照脚本，依赖 DSH 会话）。`test/probes.jsonl` 留着，CI 用它守探针集合完整性。
-5. **长期指示**：`AGENTS.md` + README 的「这个仓库只做一件事」+ selftest「1.5 仓库范围」四条断言。删掉任一处 `npm test` 变红。
+5. **长期指示**：`AGENTS.md` + README 的范围段 + selftest「1.5 仓库范围」四条断言。删掉任一处 `npm test` 变红。
 
 ### 数字
 

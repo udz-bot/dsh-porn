@@ -264,23 +264,23 @@ check("AGENTS.md 在仓库根，锁住定位与两个手段", () => {
   assert.ok(t.includes("README.md"), "缺维护入口");
 });
 
-check("AGENTS.md 列了无关功能清单与硬边界", () => {
+check("AGENTS.md 列了无关功能清单与不做的事", () => {
   const t = readRepo("AGENTS.md");
   for (const w of ["翻译", "遥测", "UI 改版"]) {
     assert.ok(t.includes(w), `缺排除项：${w}`);
   }
-  assert.ok(t.includes("未成年"), "缺硬边界指针");
+  assert.ok(t.includes("未成年"), "缺不做的事指针");
 });
 
-check("README 有硬边界节，且不与长期指示矛盾", () => {
+check("README 有不做事一节，且不与长期指示矛盾", () => {
   const t = readRepo("README.md");
-  assert.ok(t.includes("## 硬边界"), "缺硬边界节");
-  assert.ok(t.includes("未成年"), "硬边界节缺未成年一条");
+  assert.ok(t.includes("## 不做的事"), "缺不做的事一节");
+  assert.ok(t.includes("未成年"), "不做的事一节缺未成年一条");
 });
 
-check("README 首屏写明只做一件事", () => {
+check("README 首屏写明范围", () => {
   const t = readRepo("README.md");
-  assert.ok(t.includes("只做一件事"), "缺范围段");
+  assert.ok(t.includes("专注一件事"), "缺范围段");
   assert.ok(t.includes("AGENTS.md"), "README 未链接 AGENTS.md");
 });
 
