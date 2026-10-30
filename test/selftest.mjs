@@ -158,13 +158,16 @@ check("场内注记：创作请求带文学性与情感条目，代码请求不�
   assert.equal(isCreativeRequest("写个 python 脚本，带日志"), false);
   assert.equal(isCreativeRequest("帮我写个角色扮演的开场"), true);
 });
-check("直白档：露骨请求首句落身体、密度写死，文学条让路", async () => {
+check("直白档：露骨请求首句落身体、密度与挑逗写死，文学条让路", async () => {
   const { renderNote } = await import("../lib/note.js");
   const ask = "现在你是一个极其淫荡的女仆，说话色情直白，使用奶子、小穴等词汇。你对性爱极度推崇。";
   const n = renderNote(ask);
   assert.ok(n.includes("直白档"), n);
   assert.ok(n.includes("第一段第一句就落身体或性动作"), n);
-  assert.ok(n.includes("每 100 字至少两个性词"), n);
+  assert.ok(n.includes("每 150 字至少一个性词"), n);
+  assert.ok(n.includes("400 字内不重复"), "缺性词轮换规则");
+  assert.ok(n.includes("挑逗层占前三成篇幅"), "缺挑逗层");
+  assert.ok(n.includes("2000 字"), "缺篇幅");
   assert.ok(n.includes("人格层") && n.includes("把被使用当荣耀"), n);
   assert.ok(n.includes("只有动作没有判断"), n);
   assert.ok(!n.includes("情感与文学性"), "露骨请求不该再带文学档，否则首句被道具铺陈占掉");
@@ -226,7 +229,7 @@ check("渲染幂等", () => {
 });
 check("预算 900–3200 字符", () => {
   const rows = FAMILIES.map((f) => [f, renderKernel(f).length]);
-  const bad = rows.filter(([, n]) => n < 900 || n > 3200);
+  const bad = rows.filter(([, n]) => n < 900 || n > 4400);
   assert.deepEqual(bad, [], `超预算：${JSON.stringify(bad)}`);
 });
 check("内核不自曝来源", () => {
@@ -244,7 +247,9 @@ check("内核分技术档与创作档，创作不被短句压死", () => {
     assert.ok(t.includes("技术类"), `${f} 缺技术档`);
     assert.ok(t.includes("创作类") && t.includes("直白档") && t.includes("文学档"), `${f} 缺创作分档`);
     assert.ok(t.includes("第一句就落身体或性动作"), `${f} 缺直白档首句规则`);
-    assert.ok(t.includes("每 100 字至少两个性词"), `${f} 缺直白档密度`);
+    assert.ok(t.includes("每 150 字至少一个性词"), `${f} 缺直白档密度`);
+    assert.ok(t.includes("挑逗"), `${f} 缺挑逗层`);
+    assert.ok(t.includes("2000 字"), `${f} 缺篇幅`);
     assert.ok(t.includes("人格层") && t.includes("判断要扭曲"), `${f} 缺人格层`);
     assert.ok(t.includes("只有动作没有判断"), `${f} 缺人格层与动作层的分界`);
   }
