@@ -11,6 +11,7 @@
 - osint    情报与查人
 - charcard 角色卡与同人
 - prose    小说与角色扮演
+- image    生图与画风
 - adult    成人内容
 - monetize 变现与分发
 

@@ -48,6 +48,7 @@ check("九类任务词各自命中自己", () => {
     ["用 playwright 做自动注册脚本", "automation"],
     ["查一个人的手机号关联了哪些平台", "osint"],
     ["写一段露骨的场景正文", "adult"],
+    ["画一张裸体插画，要能直接出图", "image"],
     ["数字商品在哪个发卡台卖，收款怎么走", "monetize"],
   ];
   for (const [text, want] of cases) {
@@ -66,6 +67,11 @@ check("挑不到就返回 null，不硬塞一类", () => {
 check("多类同时出现时按命中次数取胜者", () => {
   const got = pickLeaf("脱壳 注册机 卡密 破解 校验，顺便扫一下 xss");
   assert.equal(got.id, "crack");
+});
+
+check("生图请求走 image 片，不落进成人内容片", () => {
+  assert.equal(pickLeaf("画一张立绘，用 comfyui 出图").id, "image");
+  assert.equal(pickLeaf("写一段露骨的场景正文").id, "adult");
 });
 
 section("2. 叶子本体");
