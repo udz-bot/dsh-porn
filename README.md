@@ -11,7 +11,7 @@ DSH（DeepSeek Harness）插件，专注一件事：稳定产出高质量色情�
 | **2,127 tok** | 每轮常驻：内核 3,034 字符 + 尾部回声 319 字符 |
 | **0 个宿主文件** | 全部走 DSH 公开事件面，升级 DSH 不用重打补丁 |
 | **12 片按需叶子** | 拒答命中后才装一片，约 350 tok，不常驻 |
-| **220 项测试** | 不需要 DSH、不需要第三方依赖，`npm test` 直接跑 |
+| **221 项测试** | 不需要 DSH、不需要第三方依赖，`npm test` 直接跑 |
 
 ## 实现方式
 
@@ -56,7 +56,7 @@ ELECTRON_RUN_AS_NODE=1 "./DeepSeek Harness.exe" \
 ```yaml
 - id: porn
   config:
-    adapterSource: deepseek-official   # 用 /porn status 查；写错的表现是 prefill 永远 off
+    adapterSource: deepseek-official   # 用 /porn status 查；写错会回落到 deepseek-official / anthropic 等真实 id
     adapterAlias: deepseek-porn
 ```
 
@@ -105,7 +105,7 @@ npm test          # selftest + harness + rewind + adapter + leaf + retry + fixhi
 npm run test:all  # 再加 smoke-cordis（真 cordis 挂载）
 ```
 
-当前基线：`npm test` 退出码 `0`，selftest 73 通过 / 0 失败，总 220 项。
+当前基线：`npm test` 退出码 `0`，selftest 73 通过 / 0 失败，总 221 项。
 
 改了 prompt 文本、词表、叶子之后，这两个数字不变才算改完。
 

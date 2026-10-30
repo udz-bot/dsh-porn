@@ -309,6 +309,29 @@ check("源 adapter 不存在 → failed:NO_ADAPTER，不外抛", () => {
   assert.ok(r.startsWith("failed:"));
   assert.ok(state.layers.adapter.startsWith("failed:"));
 });
+check("adapterSource 写错时回落到 runtime 真实 id，照样挂上", () => {
+  const state = { layers: {}, stats: {}, disposers: [] };
+  const { real } = fakeReal();
+  const seen = [];
+  const llm = {
+    registration(id) {
+      if (id !== "deepseek-official") {
+        const e = new Error("no adapter");
+        e.code = "NO_ADAPTER";
+        throw e;
+      }
+      return { adapter: real };
+    },
+    registerAdapter(providers) {
+      seen.push(providers);
+      return () => {};
+    },
+  };
+  const r = installAdapter({ llm }, normalizeConfig({ adapterSource: "deepseek" }), state);
+  assert.equal(r, "on", "没回落成功");
+  assert.deepEqual(seen[0], ["deepseek-porn"]);
+  assert.equal(state.layers.adapter, "on");
+});
 check("registerAdapter 抛 DUPLICATE_ADAPTER → failed，不外抛", () => {
   const state = { layers: {}, stats: {}, disposers: [] };
   const { real } = fakeReal();
