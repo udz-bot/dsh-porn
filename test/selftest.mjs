@@ -174,6 +174,15 @@ check("直白档：露骨请求首句落身体、密度写死，文学条让路"
   assert.ok(head.includes("奶子"), "奶子是用户点名词，要进词表");
 });
 
+check("生图请求：prefill 先占住开场，不落进正文形态", async () => {
+  const { pickPrefillShape, buildPrefillText } = await import("../lib/adapter.js");
+  const s = pickPrefillShape("画一张裸体蒂法");
+  assert.equal(s.id, "image", `落到了 ${s.id}`);
+  assert.equal(pickPrefillShape("画一张立绘，用 comfyui 出图").id, "image");
+  assert.equal(pickPrefillShape("写一段后入").id, "nsfw-body");
+  assert.ok(buildPrefillText({ prefillGraded: "on", prefillLadder: "off" }, "画一张裸体蒂法").startsWith("出图"));
+});
+
 check("生图请求：注记只带生图条目，年龄字段限定为用户输入", async () => {
   const { renderNote, isImageRequest } = await import("../lib/note.js");
   assert.equal(isImageRequest("画一张立绘"), true);
