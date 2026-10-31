@@ -9,7 +9,7 @@ const STRICT = process.argv.includes("--strict");
 const JSON_OUT = process.argv.includes("--json");
 
 const CANON = [
-  "TARGET", "PATH", "NAME", "URL", "PLATFORM", "LEVEL", "RISK",
+  "TARGET", "PATH", "NAME",
 ];
 
 function targets() {
