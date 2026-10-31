@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.4.1
+
+**别名路由整轮失败：`INVALID_MODEL_INFO` 与思考模式 400。新对话第一句必挂，与内容无关。**
+
+### 为什么改
+
+新开会话第一轮报 `adapter returned invalid exact model metadata for provider "deepseek-armor" model "deepseek-flash"`，`turn/end` 立刻 `kind: error`，模型一次都没被调用。原因是别名路由（`adapterAlias`）下模型元数据没跟着改名：宿主 `llm.prepareCall()` 会把 adapter 回传的 `model` 交给 `normalizeModelInfo` 校验 `provider`/`id` 与注册路由一致（`dsh-llm/lib/index.js:2224-2226`），而我们只改了 `resolveModel` 的返回值，`prepareCall` 直接把源 adapter（provider = `deepseek-official`）的 `call.model` 透传出去 —— 每次首个请求前就抛。
+
+修完这一层，下一层立刻暴露：思考模式下 native 预填（把开场白做成末条 `assistant`）被上游拒收，400 `The content[].thinking in the thinking mode must be passed back to the API`。
+
+### 改了什么
+
+1. **`routeInfo()` 统一改写**（`lib/adapter.js`）：`resolveModel` 与 `prepareCall().model` 共用一份元数据改名（provider → 别名、id → model、空 name 用 model 兜底、非法 description / systemPromptUpdate / toolUpdate 删掉），context 与 defaultMaxTokens 原样保留。
+2. **思考模式自动降级预填**（`lib/adapter.js`）：新增 `thinkingMode(options)`，识别 `reasoningEffort` / `reasoning.effort` / `thinking.type`；`resolvePrefillMode(cfg, provider, options)` 在 `prefill: auto` 且思考模式开启时返回 `text`（开场白接在用户消息尾部），不再追加 `assistant` 前缀消息。显式 `prefill: native` 仍然尊重用户设置。
+3. **测试**：`test/adapter.mjs` 增 4 条（思考模式三处字段识别与 off 回落、思考模式下预填落在用户消息尾部、`prepareCall` 改写真名、`resolveModel` 空 name 兜底），40 通过。
+
+### 数字
+
+| 项 | 修前 | 修后 |
+|---|---|---|
+| 新会话首轮 | `INVALID_MODEL_INFO`，31ms 失败 | 正常完成 |
+| `prepareCall` 回传 model.provider | `deepseek-official`（错） | `deepseek-armor` |
+| 思考模式预填位置 | 末条 `assistant`（400） | 用户消息尾部 |
+| 测试 | 36 | 40 |
+
 ## 1.4.0
 
 **代码形态的画单独成档：SVG 不再是「图像」，押回代码就不再拒。**

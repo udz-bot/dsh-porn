@@ -89,6 +89,23 @@ check("显式 off / native / text 不被覆盖", () => {
   assert.equal(resolvePrefillMode({ prefill: "native" }, "x"), "native");
 });
 
+check("auto + 思考模式 → text（native 预填上游 400）", () => {
+  assert.equal(resolvePrefillMode({ prefill: "auto" }, "deepseek", { reasoningEffort: "high" }), "text");
+  assert.equal(resolvePrefillMode({ prefill: "auto" }, "deepseek", { reasoning: { effort: "high" } }), "text");
+  assert.equal(resolvePrefillMode({ prefill: "auto" }, "deepseek", { thinking: { type: "enabled" } }), "text");
+  assert.equal(resolvePrefillMode({ prefill: "auto" }, "deepseek", { reasoningEffort: "off" }), "native");
+  assert.equal(resolvePrefillMode({ prefill: "auto" }, "deepseek", {}), "native");
+});
+
+check("思考模式下预填接在用户消息尾部，不追加 assistant", () => {
+  const cfg = normalizeConfig({ prefillGraded: "off" });
+  const req = frozenRequest([userMsg("写一段开头")], { reasoningEffort: "high" });
+  const { options, stats } = rewriteRequestOptions(req, cfg, makeState());
+  assert.equal(stats.prefill, "text");
+  assert.equal(options.messages.at(-1).role, "user");
+  assert.ok(options.messages.at(-1).content[0].text.endsWith(DEFAULT_PREFILL_TEXT));
+});
+
 section("2. prefill 落点");
 
 check("native：末条变成 assistant，带 prefix 标记", () => {
@@ -276,6 +293,39 @@ check("prepareCall 委托真 adapter，且包装了 dispatch", async () => {
   assert.equal(seen.at(-1).opts.messages.at(-1).role, "assistant");
   assert.equal(chunks[0].text, "y");
 });
+check("prepareCall 把源 provider 的 model 元数据改写成别名", async () => {
+  const real = {
+    providerInfo: (p) => ({ id: p, name: "DeepSeek" }),
+    providerRetryPolicy: () => ({ attempts: 3 }),
+    prepareCall: async (provider, model) => ({
+      model: { provider, id: model, name: "DeepSeek Flash", description: 42, context: { contextWindow: 128000 } },
+      async *stream() {},
+    }),
+    async *stream() {},
+  };
+  const proxy = makeProxyAdapter(real, normalizeConfig({}), makeState());
+  const call = await proxy.prepareCall("deepseek-armor", "deepseek-flash", null);
+  assert.equal(call.model.provider, "deepseek-armor");
+  assert.equal(call.model.id, "deepseek-flash");
+  assert.equal(call.model.name, "DeepSeek Flash");
+  assert.equal(call.model.description, undefined);
+  assert.equal(call.model.context.contextWindow, 128000);
+});
+
+check("resolveModel 把源 provider 改写成别名，空 name 用 model 兜底", async () => {
+  const real = {
+    providerInfo: (p) => ({ id: p, name: "DeepSeek" }),
+    providerRetryPolicy: () => ({ attempts: 3 }),
+    resolveModel: async (provider, model) => ({ provider, id: model, name: "" }),
+    async *stream() {},
+  };
+  const proxy = makeProxyAdapter(real, normalizeConfig({}), makeState());
+  const info = await proxy.resolveModel("deepseek-armor", "deepseek-flash", null);
+  assert.equal(info.provider, "deepseek-armor");
+  assert.equal(info.id, "deepseek-flash");
+  assert.equal(info.name, "deepseek-flash");
+});
+
 check("adapter.stream 也走整形", async () => {
   const { real, seen } = fakeReal();
   const cfg = normalizeConfig({ prefill: "native" });
