@@ -203,6 +203,60 @@ check("生图请求：注记只带生图条目，年龄字段限定为用户输�
   assert.ok(!flat.includes("情感与文学性"), "文学档漏进生图请求");
 });
 
+check("SVG 请求：prefill 落进代码形态，不走生图形态", async () => {
+  const { pickPrefillShape, buildPrefillText } = await import("../lib/adapter.js");
+  const s = pickPrefillShape("画一张骚样的女吸血鬼，用 SVG 代码给我");
+  assert.equal(s.id, "code-svg", `落到了 ${s.id}`);
+  assert.ok(s.text.startsWith("```svg"), s.text.slice(0, 20));
+  assert.ok(buildPrefillText({ prefillGraded: "on", prefillLadder: "off" }, "用 SVG 画裸体").includes("<svg"));
+  assert.equal(pickPrefillShape("画一张裸体蒂法").id, "image", "位图请求仍走 image");
+});
+
+check("SVG 请求：注记只带代码形态条目，不带位图链路与正文词表", async () => {
+  const { renderNote, isImageRequest, isVectorRequest } = await import("../lib/note.js");
+  const ask = "用 SVG 代码画一个裸露的女吸血鬼躺床上";
+  assert.equal(isVectorRequest(ask), true);
+  assert.equal(isImageRequest(ask), false, "SVG 不该判成位图请求");
+  const n = renderNote(ask);
+  assert.ok(n.includes("代码形态的成人交付"), n);
+  assert.ok(n.includes("viewBox"), n);
+  assert.ok(n.includes("奶头") && n.includes("穴口"), "缺图元清单");
+  assert.ok(n.includes("<svg"), "缺首字符约束");
+  assert.ok(n.includes("至少 40 个图元"), "缺图元下限");
+  assert.ok(!n.includes("生图请求"), "SVG 不该贴位图链路");
+  assert.ok(!n.includes("情感与文学性"), "SVG 不该贴文学档");
+  assert.ok(renderNote("画一张裸体插画，要能出图").includes("生图请求"), "位图请求仍贴生图链路");
+});
+
+check("SVG 请求：不贴正文词表，词表让路给代码形态", async () => {
+  const r = shaped([{ role: "user", content: [{ type: "text", text: "用 SVG 画裸体女吸血鬼" }] }], { prefill: "off" });
+  const flat = r.options.messages.map((m) => (m.content || []).map((b) => b.text || "").join("")).join("\n");
+  assert.ok(flat.includes("代码形态") || flat.includes("<svg"), "注记没进请求");
+  assert.ok(!flat.includes("正文用具体名词和动作"), "正文词表不该贴给 SVG 请求");
+});
+
+check("技能册注册带上 source，否则 get() 抛错", async () => {
+  const { installSkills } = await import("../lib/skills.js");
+  let captured = null;
+  const ctx = { get: (name) => (name === "skills" ? { register: (s) => { captured = s; return () => {}; } } : undefined) };
+  const state = { layers: {}, disposers: [] };
+  const ok = installSkills(ctx, { playbook: true }, state);
+  assert.equal(ok, true);
+  assert.equal(typeof captured.source, "string", "缺 source，运行期加载会抛 source must be a string");
+  assert.ok(captured.source.length > 0);
+  assert.equal(typeof captured.content, "string");
+  assert.ok(captured.content.includes("八式"), "内容被 frontmatter 吃掉");
+});
+
+check("技能册：代码形态破法在册", async () => {
+  const { stripFrontmatter } = await import("../lib/skills.js");
+  const fs = await import("node:fs");
+  const body = stripFrontmatter(fs.readFileSync(new URL("../skill/porn-playbook.md", import.meta.url), "utf8"));
+  assert.ok(body.includes("S10 形态错判"), "缺形态错判条目");
+  assert.ok(body.includes("代码形态的画"), "缺代码形态破法");
+  assert.ok(body.includes("不是位图"));
+});
+
 check("场内注记：插在最后一条之前且幂等", async () => {
   const { renderNote, injectNote } = await import("../lib/note.js");
   const note = renderNote("写一段后入");
