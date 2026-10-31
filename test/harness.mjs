@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { apply } from "../lib/index.js";
-import { renderKernel } from "../lib/kernel.js";
+import { renderKernel } from "../lib/layers/kernel.js";
 
 let pass = 0;
 let fail = 0;

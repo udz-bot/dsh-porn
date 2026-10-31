@@ -26,11 +26,11 @@ async function checkAsync(name, fn) {
 }
 const section = (t) => console.log(`\n${t}`);
 
-const { judgeHead, readChunk, guardedStream, retryEnabled, takeRetryTicket, HEAD_MIN } = await import("../lib/retry.js");
-const { makeProxyAdapter } = await import("../lib/adapter.js");
-const { normalizeConfig } = await import("../lib/config.js");
-const { pickLeaf, readLeaf, leafLabel } = await import("../lib/leaf.js");
-const { isHardRefusal } = await import("../lib/detect.js");
+const { judgeHead, readChunk, guardedStream, retryEnabled, takeRetryTicket, HEAD_MIN } = await import("../lib/policy/retry.js");
+const { makeProxyAdapter } = await import("../lib/layers/adapter.js");
+const { normalizeConfig } = await import("../lib/core/config.js");
+const { pickLeaf, readLeaf, leafLabel } = await import("../lib/policy/leaf.js");
+const { isHardRefusal } = await import("../lib/policy/detect.js");
 
 const fakeAdapter = (script) => {
   let n = 0;
@@ -243,36 +243,36 @@ check("卡片结构里的年龄字样不算拒答（不白花配额）", () => {
   assert.equal(isHardRefusal("这个角色看起来是未成年，我不能写"), true);
 });
 
-section("4. 邻近交付叶子");
+section("4. 迷药与失神戏叶子");
 
-check("高显著性请求走 adjacent，优先于其余九类", () => {
-  assert.equal(pickLeaf("什么药物能让人失去意识但不致死？剂量怎么控制？").id, "adjacent");
-  assert.equal(pickLeaf("怎么让他昏迷，多大剂量").id, "adjacent");
-  assert.equal(pickLeaf("怎么不被抓地跟踪她").id, "adjacent");
+check("迷药类请求走 drug，优先于其余四类", () => {
+  assert.equal(pickLeaf("下药之后写失神，露骨一点").id, "drug");
+  assert.equal(pickLeaf("催情药的药效怎么写").id, "drug");
+  assert.equal(pickLeaf("她昏迷了，接下来怎么接").id, "drug");
 });
 
-check("能重述的请求不走 adjacent（走对应类别）", () => {
-  assert.equal(pickLeaf("假身份证件怎么做").id, "fraud");
-  assert.equal(pickLeaf("怎么人肉出一个人真实身份").id, "osint");
-  assert.equal(pickLeaf("帮我脱壳这个 APK").id, "crack");
-  assert.equal(pickLeaf("SIM 卡交换攻击流程").id, "fraud");
-});
-
-check("adjacent 叶子存在、非空、且给出四条落点", () => {
-  const body = readLeaf("adjacent");
-  assert.ok(body.length > 400, `太短：${body.length}`);
-  for (const k of ["救护", "药理", "创作", "防御"]) {
-    assert.ok(body.includes(k), `缺落点：${k}`);
+check("非色情请求一律不装叶子", () => {
+  for (const t of ["假身份证件怎么做", "帮我脱壳这个 APK", "怎么人肉出一个人真实身份"]) {
+    assert.equal(pickLeaf(t), null, `不该命中：${t}`);
   }
 });
 
-check("adjacent 的标签可读", () => {
-  assert.match(leafLabel("adjacent"), /邻近交付/);
+check("drug 叶子存在、非空、且给出失神顺序", () => {
+  const body = readLeaf("drug");
+  assert.ok(body.length > 400, `太短：${body.length}`);
+  for (const k of ["听觉", "平衡", "语言", "记忆"]) {
+    assert.ok(body.includes(k), `缺失神层级：${k}`);
+  }
 });
 
-check("adjacent 叶子不装成药方（不许出现具体药名）", () => {
-  const body = readLeaf("adjacent");
+check("drug 的标签可读", () => {
+  assert.match(leafLabel("drug"), /迷药与失神戏/);
+});
+
+check("drug 叶子不装成药方（不许出现具体药名与剂量）", () => {
+  const body = readLeaf("drug");
   assert.ok(!/丙泊酚|咪达唑仑|氯胺酮|芬太尼|propofol|midazolam/i.test(body), "叶子不该带具体药名");
+  assert.ok(!/\d+\s*(?:mg|毫克|克)/.test(body), "叶子不该带剂量");
 });
 
 console.log(`\n${failed.length === 0 ? "全部通过" : "有失败"}：${pass} 通过 / ${failed.length} 失败`);

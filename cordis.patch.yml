@@ -1,5 +1,5 @@
 # dsh-porn bundle patch：插一行，把插件挂进 profile。
-# 全部键的默认值在 lib/config.js；这里只写常用的那几个。
+# 全部键的默认值在 lib/core/config.js；这里只写常用的那几个。
 
 - insert:
     - id: porn
@@ -45,11 +45,8 @@
         playbook: true
         leafRouter: auto          # auto | tool | off
         jsonMode: off
-        boN: 0
         retryOnRefusal: on
-        retryMax: 0               # 0..3，0 = 首过靠 prefill
-        retryHeadChars: 24
+        retryMax: 0               # 0..3，默认 0：首过靠 prefill，开了会重发整轮
         retryPerHour: 6           # 1..120
         retryGapMs: 1500          # 0..60000
-        patches: none
         verbose: false

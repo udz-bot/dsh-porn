@@ -10,7 +10,7 @@ import {
   renderRewindResult,
   getDraft,
   takeDraft,
-} from "../lib/rewind.js";
+} from "../lib/support/rewind.js";
 
 let pass = 0;
 let fail = 0;

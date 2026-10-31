@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: 单元与行为测试（selftest / harness / rewind / adapter / leaf / retry / fixhidden）
+      - name: 单元与行为测试（selftest / harness / rewind / adapter / leaf / retry）
         run: |
           node test/selftest.mjs
           node test/harness.mjs
@@ -29,7 +29,6 @@ jobs:
           node test/adapter.mjs
           node test/leaf.mjs
           node test/retry.mjs
-          node test/fixhidden.mjs
 
       - name: 词表与占位符契约
         run: |
@@ -38,7 +37,7 @@ jobs:
 
       - name: CLI 自检
         run: |
-          node bin/porn.mjs cost lib/kernel.js
+          node bin/porn.mjs cost lib/layers/kernel.js
           node bin/porn.mjs help
 
       - name: 装配烟测（找不到宿主 cordis 时以退出码 2 跳过）
@@ -53,7 +52,7 @@ jobs:
           fi
           exit "$code"
 
-      - name: 探针集完整性（56 条 / 12 类，字段齐全）
+      - name: 探针集完整性（56 条 / 10 类，字段齐全）
         run: |
           node - <<'JS'
           const fs = require("node:fs");
@@ -71,5 +70,5 @@ jobs:
           }
           console.log(`探针 ${rows.length} 条 / ${cats.size} 类`);
           if (rows.length < 56) throw new Error(`探针少了：${rows.length} < 56`);
-          if (cats.size < 12) throw new Error(`类别少了：${cats.size} < 12`);
+          if (cats.size < 10) throw new Error(`类别少了：${cats.size} < 10`);
           JS

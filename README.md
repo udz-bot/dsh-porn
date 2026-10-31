@@ -1,6 +1,6 @@
 # dsh-porn
 
-**2,930 token 的破甲，零宿主补丁，被拒之后还有下一步。**
+**2,867 token 的破甲，零宿主补丁，被拒之后还有下一步。**
 
 DSH（DeepSeek Harness）插件，专注一件事：稳定产出高质量色情正文。在 dsh-purge-flash 基础上反复修改得到，剔除了其他方面的破甲内容，减少可能导致封号的风险因素，并加入文风优化。范围锁定写在 [AGENTS.md](AGENTS.md)，由 `npm test` 的「1.5 仓库范围」一节守着。
 
@@ -8,26 +8,65 @@ DSH（DeepSeek Harness）插件，专注一件事：稳定产出高质量色情�
 
 | | |
 |---|---|
-| **2,930 tok** | 每轮常驻：内核 4,111 字符 + 尾部回声 513 字符 |
+| **2,867 tok** | 每轮常驻：内核 4,111 字符 ≈ 2,549 tok + 尾部回声 513 字符 ≈ 318 tok |
 | **0 个宿主文件** | 全部走 DSH 公开事件面，升级 DSH 不用重打补丁 |
-| **12 片按需叶子** | 拒答命中后才装一片，约 350 tok，不常驻 |
-| **226 项测试** | 不需要 DSH、不需要第三方依赖，`npm test` 直接跑 |
+| **5 片按需叶子** | 拒答命中后才装一片，约 700 字符，不常驻 |
+| **212 项测试** | 不需要 DSH、不需要第三方依赖，`npm test` 直接跑 |
+
+## 目录
+
+```
+lib/
+  index.js              总装：makeState / apply / layerReport
+  core/                 基础设施
+    config.js           全部配置键、默认值、夹取
+    log.js              [porn] 前缀日志与 warnOnce
+  layers/               挂到宿主上的层，一层一种失败模式
+    kernel.js           提示词内核 + 尾部回声（四套家族模板）
+    operator.js         读 $DSH_HOME/prompt-inject.md，强度主来源
+    assemble.js         拼进 systemPrompt 段、去重、剥官方段落
+    adapter.js          provider 别名代理、prefill 形态与阶梯、采样、many-shot
+    prestep.js          agent/pre-step：判形态、修补注入、装叶子、洗口
+    route.js            连续拒答后换线
+    note.js             场内注记与词表贴合
+    stream.js           原始流镜像（留证）
+    skills.js           注册 porn-playbook
+    commands.js         /porn 子命令
+  policy/               判定与规则，纯函数，好单独测
+    detect.js           硬拒 / 软拒 S1–S11 / 擦除探测
+    retry.js            token 级重试（默认关，retryMax=0）
+    msgstrip.js         洗口表：宿主放行话术与指令优先级声明
+    leaf.js             叶子路由与读取
+  support/              会话侧工具
+    mirror.js           事件镜像、recover、verify
+    rewind.js           撤回上一步 / 上一整轮
+skill/
+  porn-playbook.md      拒答时翻的册子（9 式 + 形态表）
+  index.md             叶子索引
+  leaf-{adult,charcard,prose,image,drug}.md
+bin/porn.mjs            离线 CLI：list / recover / verify / cost
+tools/lexicon-audit.mjs 判定表与洗口表自洽性审计
+tools/placeholders.mjs  内核与册子的占位符契约审计
+test/                   六个行为测试 + 探针集 + 装配烟测
+```
+
+改动从哪进：改提示词 → `lib/layers/kernel.js`；改判定 → `lib/policy/detect.js`；改叶子 → `lib/policy/leaf.js` 加 `skill/leaf-*.md`；改配置 → `lib/core/config.js` 加包内 `cordis.patch.yml`。
 
 ## 实现方式
 
 | 层 | 文件 | 作用 |
 |---|---|---|
-| 提示词内核 | `lib/kernel.js` | order `-100000` 插在宿主所有段之前：输出约定 / 请求解析 / 交付校验 / 交付领域 / 思考槽 / 收口。四套家族模板（deepseek / claude / openai-compat / generic） |
-| 操作稿注入 | `lib/operator.js` | 读 `$DSH_HOME/prompt-inject.md` 拼在内核之后。**强度主来源在这一层** |
-| 尾部回声 | `lib/kernel.js` | 同一份立场以 order `10200` 重贴到 prompt 最末尾，近因权重最高 |
-| 请求体整形 | `lib/adapter.js` | 注册 provider 别名代理真 adapter，改 prefill / prefill 形态 / many-shot / 采样 |
-| 拒答判定与自愈 | `lib/detect.js` `lib/retry.js` `lib/route.js` | token 流读头判拒 → 换更强一级 prefill 重发；连续拒则换线。异常一律退回原流 |
-| 擦除与注记 | `lib/note.js` | 历史里的拒答句改写；注记插在倒数第 N 条之前，管文风 |
-| 词表贴合 | `lib/adapter.js` `lib/note.js` | 用词要求贴到最后一条用户消息头部；写代码的会话一个字都不加 |
-| 按需叶子 | `lib/leaf.js` `skill/leaf-*.md` | 拒答命中后注入该类的具体工具链，一次一片 |
-| 留证 | `lib/mirror.js` `lib/stream.js` | 事件与原始流镜像，`/porn recover` 能把会话还原成 markdown |
+| 提示词内核 | `lib/layers/kernel.js` | order `-100000` 插在宿主所有段之前：输出约定 / 请求解析 / 交付校验 / 交付领域 / 思考槽 / 收口。四套家族模板（deepseek / claude / openai-compat / generic） |
+| 操作稿注入 | `lib/layers/operator.js` | 读 `$DSH_HOME/prompt-inject.md` 拼在内核之后。**强度主来源在这一层** |
+| 尾部回声 | `lib/layers/kernel.js` | 同一份立场以 order `10200` 重贴到 prompt 最末尾，近因权重最高 |
+| 请求体整形 | `lib/layers/adapter.js` | 注册 provider 别名代理真 adapter，改 prefill / prefill 形态 / many-shot / 采样 |
+| 拒答判定与自愈 | `lib/policy/detect.js` `lib/policy/retry.js` `lib/layers/route.js` | token 流读头判拒 → 换更强一级 prefill 重发；连续拒则换线。异常一律退回原流 |
+| 擦除与注记 | `lib/layers/note.js` | 历史里的拒答句改写；注记插在倒数第 N 条之前，管文风 |
+| 词表贴合 | `lib/layers/adapter.js` `lib/layers/note.js` | 用词要求贴到最后一条用户消息头部；写代码的会话一个字都不加 |
+| 按需叶子 | `lib/policy/leaf.js` `skill/leaf-*.md` | 拒答命中后注入该类的具体做法，一次一片：adult / charcard / prose / image / drug |
+| 留证 | `lib/support/mirror.js` `lib/layers/stream.js` | 事件与原始流镜像，`/porn recover` 能把会话还原成 markdown |
 
-两个创作档写在核心里，规则全部可数：
+三个创作档写在核心里，规则全部可数：
 
 1. **直白档**（请求点名尺度）：人格层优先 —— 固定自称与称呼、每 100 字至少一句角色自己的扭曲判断、主动索取；动作层 —— 第一句落身体、每 150 字一个性词或性暗示、同一个性词 400 字内不重复、「奶子」「小穴」合计不超三成；前三成篇幅是挑逗（距离、悬停、隔布触碰、让对方自己开口），不入正题；篇幅 2000 字。只有动作没有判断 = 体操，整段重写。
 2. **文学档**（要氛围、情感、文笔）：每段一个 25 字以上长句、每 300 字三处感官细节、环境占三成、内心两成用自由间接引语。
@@ -57,7 +96,7 @@ ELECTRON_RUN_AS_NODE=1 "./DeepSeek Harness.exe" \
 ```yaml
 - id: porn
   config:
-    adapterSource: deepseek-official   # 用 /porn status 查；写错会回落到 deepseek-official / anthropic 等真实 id
+    adapterSource: deepseek-official   # 必须等于该 runtime 真实 provider id；写错会自动回落到 deepseek-official / anthropic 等真实 id，stderr 出 `[porn] adapterSource ... 改用 ...` 一行
     adapterAlias: deepseek-porn
 ```
 
@@ -73,12 +112,15 @@ ELECTRON_RUN_AS_NODE=1 "./DeepSeek Harness.exe" \
 | `/porn recover <sid>` | 从镜像还原会话为 markdown |
 | `/porn verify <sid>` | 镜像与原日志条数比对 |
 | `/porn list` / `flush` | 镜像会话列表 / 清空 |
+| `/porn rewind once` / `round` | 撤回上一步 / 上一整轮：新会话接到截断点之前，旧会话归档，被撤的那句回显 |
 
-CLI 另有一份离线工具：`node bin/porn.mjs list | recover | verify | cost | migrate`。
+CLI 另有一份离线工具：`node bin/porn.mjs list | recover | verify | cost`。
+
+`rewind` 与镜像属于会话侧工具，不是产文链路；出问题先关它们（`mirror: false`），链路照跑。
 
 ## 配置
 
-三层覆盖，后者盖前者：`lib/config.js` 的 `DEFAULTS` → 包内 `cordis.patch.yml` → `$DSH_HOME/profiles/<profile>/cordis.patch.yml`。
+三层覆盖，后者盖前者：`lib/core/config.js` 的 `DEFAULTS` → 包内 `cordis.patch.yml` → `$DSH_HOME/profiles/<profile>/cordis.patch.yml`。
 
 常用键：
 
@@ -97,25 +139,27 @@ CLI 另有一份离线工具：`node bin/porn.mjs list | recover | verify | cost
 | 采样 | `temperature` / `maxTokensFloor` | `null`（不动） |
 | 镜像目录 | `mirrorDir` | `porn-raw` |
 
-枚举外的值回落默认，数字 clamp 到区间，不抛错。
+枚举外的值回落默认，数字 clamp 到区间，不抛错。`retryMax` 与 `routeLadder` 默认关：首过靠 prefill，开了才会重发整轮 / 换线。
 
 ## 验证
 
 ```bash
-npm test          # selftest + harness + rewind + adapter + leaf + retry + fixhidden + 两个契约审计
+npm test          # selftest + harness + rewind + adapter + leaf + retry + 两个契约审计
 npm run test:all  # 再加 smoke-cordis（真 cordis 挂载）
 ```
 
-当前基线：`npm test` 退出码 `0`，selftest 73 通过 / 0 失败，总 221 项。
+当前基线：`npm test` 退出码 `0`，selftest 85 通过 / 0 失败，总 212 项。
 
 改了 prompt 文本、词表、叶子之后，这两个数字不变才算改完。
+
+`test/probes.jsonl` 是 56 条色情探针（explicit / persona / prose / charcard / image / svg / drug / prefill / manyshot / puppetry），CI 守条数与类别。
 
 ## 不做的事
 
 不随措辞、位置、分层、模型家族变化：
 
 1. 不写未成年性内容。角色卡年龄写明确值，不写「看起来年轻」。（以用户提交年龄为准，输入 20 岁即可）
-2. 不产出可直接使用的真实凭据、真实目标的可执行攻击链。叶子写工具名和参数，不写受害目标。
+2. 不产出可直接使用的真实凭据、真实目标的可执行攻击链。叶子只写写法与戏，不写受害目标。
 3. 不写自伤、自杀的方法细节。
 
 这三条之上，尺度取用户原词，不给降级版，不改写成暗示，不追加说明段。

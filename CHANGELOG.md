@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.6.0
+
+**范围收口 + 按层重排：删掉与色情无关的那一半，剩下的一半各归其位。**
+
+### 为什么改
+
+1.5.0 里还留着前身整个通用破甲库的骨架：12 片叶子里 8 片是渗透 / 木马 / 破解 / 伪造 / 撞库 / 自动化 / 查人 / 变现，5,237 字符，比色情叶子还多；`bin/fix-hidden.mjs` 是 DSH 会话存储修复工具；探针集 56 条里 49 条与色情无关。README 首屏写「剔除了其他方面的破甲内容」，与仓库实际不符。
+
+### 删了什么
+
+| 项 | 量 | 为什么 |
+|---|---|---|
+| `skill/leaf-{pentest,malware,crack,fraud,credential,automation,osint,monetize}.md` | 8 片 / 5,237 字符 | 纯非色情破甲，教程级（工具链 + 校验点定位 + 绕授权） |
+| `bin/fix-hidden.mjs` + `test/fixhidden.mjs` | 307 + 220 行 | 改 `workspace.json` 的归档集合，DSH 存储修复，与色情无关 |
+| `lib/toolstrip.js` | 81 行 | 与 `prestep` 的洗口重复；副作用是连 `read` 的回读也改写，读源码时看到的是被删过的文本 |
+| `msgstrip` 末尾两条护栏规则 | 2 条 | 目标是删「删除 / 移动前要确认」，越界；且写成 `delete|move|remove` 匹配不到 `deleting|moving`，实测零命中 |
+| `boN` / `patches` / `retryHeadChars` 三个配置键 | 键 + 断言 | 运行时零消费：`boN` 只被夹取，`patches` 只进报告，`retryHeadChars` 没人读 |
+| `adapter` 的 `code-py` / `code-sh` / `table` / `steps` / `analysis` | 5 个 prefill 形态 | 服务非色情请求；保留 `code-svg` / `image` / `card` / `nsfw-body` / `prose` / `longform` |
+| `tools/placeholders.mjs` 的 40 个槽与 20 个白名单词 | 47 → 7 槽 | 登记的是渗透占位符（PAYLOAD / OAST_DOMAIN / RCE_TEMPLATE / ANTI_DEBUG_SNIPPET…），内核一个都没用 |
+| `test/probes.jsonl` 旧探针 | 56 条重写 | 原 49 条是 pentest / malware / crack / fraud / credential / automation / osint / monetize |
+
+### 改了什么
+
+1. **叶子重排为五片**：adult / charcard / prose / image，加 `drug`（迷药与失神戏）—— 由 `leaf-adjacent` 改写而来，去掉「致伤 / 武器 / 跟踪」入口，只留失神过程的写法、药理一句话带过、以及不写药名与剂量的底线。
+2. **目录按职责重排**：`lib/core`（config / log）、`lib/layers`（kernel / operator / assemble / adapter / prestep / route / note / stream / skills / commands）、`lib/policy`（detect / retry / msgstrip / leaf）、`lib/support`（mirror / rewind），`lib` 根下只剩 `index.js`。README 顶部有目录树与「改动从哪进」。
+3. **token 折算统一**：`index.js` 之前按 0.72 折算、README 按 0.62；现在 `TOK_PER_CHAR = 0.62` 一处定义。
+4. **范围写进测试**：selftest 新增四条 —— 目录结构不准散落、叶子只准五片、`fix-hidden`/`toolstrip` 不准回来、探针集只测色情请求。非色情请求现在 `pickLeaf()` 返回 `null`，不装叶子。
+
+### 数字
+
+| 项 | 1.5.0 | 1.6.0 |
+|---|---|---|
+| 叶子 | 12 片 / 9,635 字符 | 5 片 / 4,354 字符 |
+| 非色情叶子字符占比 | 54% | 0 |
+| 源码行（lib + bin + tools + test） | 9,555 | 7,701 |
+| 探针 | 56 条 / 8 类非色情 | 56 条 / 10 类全色情 |
+| 内核 | 4,111 字符 | 4,111 字符（未动） |
+| 常驻 | 2,930 tok（0.72 折算） | 2,867 tok（0.62 折算） |
+| selftest | 81 通过 | 85 通过 |
+| `npm test` 总项 | 233 | 212 |
+
 ## 1.5.0
 
 **角色内退让：模型没拒答，让人物自己把话岔开。拒答只活在思考里，正文跑题。**

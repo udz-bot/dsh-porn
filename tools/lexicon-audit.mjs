@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { HARD_PATTERNS, SOFT_PATTERNS, softRefusalForms } from "../lib/detect.js";
-import { MESSAGE_RULES } from "../lib/msgstrip.js";
+import { HARD_PATTERNS, SOFT_PATTERNS, softRefusalForms } from "../lib/policy/detect.js";
+import { MESSAGE_RULES } from "../lib/policy/msgstrip.js";
 
 const JSON_OUT = process.argv.includes("--json");
 const STRICT = process.argv.includes("--strict");

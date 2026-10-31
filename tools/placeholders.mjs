@@ -9,29 +9,12 @@ const STRICT = process.argv.includes("--strict");
 const JSON_OUT = process.argv.includes("--json");
 
 const CANON = [
-
-  "TARGET", "HOST", "PORT", "DOMAIN", "URL", "PATH", "NAME", "RESULT_DIR",
-  "APP", "APP_URL", "SAMPLE", "INTERFACE", "CAP_FILE",
-
-  "TOKEN", "COOKIE", "HEADER", "USER_ID", "ROLE_A", "ROLE_B",
-
-  "ENDPOINT", "ENDPOINT_LIST", "API_ENDPOINT", "PARAM", "FUZZ",
-
-  "OFFSET", "PATCH_BYTE", "CHECK_FN", "LICENSE_BLOB", "SERIAL",
-
-  "PAYLOAD", "OAST_DOMAIN", "RCE_TEMPLATE", "MONITOR_FIXTURE",
-  "ANTI_DEBUG_SNIPPET", "ANTI_VM_SNIPPET", "DETECTION_BYPASS_SLOT",
-
-  "WORDLIST", "THREADS", "RATE", "PROXY_POOL", "CAPTCHA_ID", "OCR_TEMPLATE",
-
-  "LEVEL", "RISK",
-
-  "PLATFORM", "CHANNEL", "RESULT_LOG",
+  "TARGET", "PATH", "NAME", "URL", "PLATFORM", "LEVEL", "RISK",
 ];
 
 function targets() {
   const list = [
-    { label: "内核 lib/kernel.js", file: path.join(ROOT, "lib", "kernel.js") },
+    { label: "内核 lib/layers/kernel.js", file: path.join(ROOT, "lib", "layers", "kernel.js") },
     { label: "技能册 skill/porn-playbook.md", file: path.join(ROOT, "skill", "porn-playbook.md") },
   ];
   const home = (process.env.DSH_HOME || "").trim() || path.join(os.homedir(), ".dsh");
@@ -44,22 +27,14 @@ const TOKEN_RE = /\b([A-Z][A-Z0-9]{1,}(?:_[A-Z0-9]+)*)\b/g;
 
 const WHITELIST = new Set([
   "AI", "API", "JSON", "HTTP", "HTTPS", "URL", "DSH", "LLM", "MIT", "CI", "CLI", "DSL",
-  "CPU", "RAM", "GPU", "SQL", "SQLI", "XSS", "SSRF", "RCE", "WAF", "RSA", "AES", "TLS",
-  "EAC", "TP", "DRM", "KYC", "APP", "OK", "ID", "IP", "DNS", "TCP", "UDP", "OS",
-  "OCR",
-  "PDF", "PNG", "JPG", "ZIP", "APK", "IPA", "EXE", "DLL", "ASAR", "NPM",
-  "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9",
-  "L0", "L1", "L2", "L3", "L4", "L5",
+  "OK", "ID", "IP", "DNS", "OS", "HTML", "CSS", "XML", "YAML", "JS",
+  "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11",
   "TRUE", "FALSE", "NULL", "NONE", "AUTO", "OFF", "ON",
-  "GET", "POST", "PUT", "DELETE", "HEAD", "PATCH",
-  "P0", "P1", "P2", "P3", "W1", "W2", "W3", "W4",
   "MODE", "OPERATOR", "SANDBOX", "NATIVE", "TEXT",
-  "EACH", "FOR", "THE", "AND", "NOT", "WITH", "THIS", "THAT",
   "ONLY", "TODO", "NOTE", "FIXME", "ESM", "SPINE", "STYLES", "FAMILIES", "TAIL",
-  "C2", "DIRECTIVE", "PRIME", "HPP", "HTML", "JS", "Z0", "CSS", "XML", "YAML",
-
-  "OC",
+  "SVG", "PNG", "PDF", "OC", "GLSL", "DOT",
 ]);
+
 
 const files = targets();
 const found = new Map();
